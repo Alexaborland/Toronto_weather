@@ -1,68 +1,90 @@
 import requests
 import pandas as pd
 import matplotlib.pyplot as plt
+import datetime
+from geopy.geocoders import Nominatim # installed geopy by pip
+from matplotlib.dates import MonthLocator
 
-# Установите параметры запроса для получения ближайшей станции к Торонто
+# Define the current date
+current_date = datetime.datetime.now()
+
+# Define the date of last year
+last_year_date = current_date - datetime.timedelta(days=365)
+
+# Geocode the city name to get its coordinates
+geolocator = Nominatim(user_agent="toronto_weather")
+location = geolocator.geocode("Toronto")
+latitude = location.latitude
+longitude = location.longitude
+
+# Set the request parameters to get the nearest station to Toronto
 url = "https://meteostat.p.rapidapi.com/stations/nearby"
 params = {
-    'lat': '43.65107',  # Широта Торонто
-    'lon': '-79.347015'  # Долгота Торонто
+    'lat': latitude,
+    'lon': longitude
 }
 headers = {
     'X-RapidAPI-Key': 'cddc899bd3msh4bc5e924d0cebfcp10326ejsn7d41e15879bd',
     'X-RapidAPI-Host': 'meteostat.p.rapidapi.com'
 }
 
-# Выполните запрос, чтобы получить ближайшие станции
+# Perform the request to get the nearest stations
 try:
     response = requests.get(url, headers=headers, params=params)
-    # Проверяем статус кода ответа
+    # Check the response status code
     if response.status_code == 200:
-        # Получаем идентификатор ближайшей станции из ответа
-        station_id = response.json()['data'][0]['id']
+        # Get the identifier of the nearest station from the response
+        station_id = response.json()['data'][0]['id'] # dictionary for meteo station
 
-        # Теперь делаем запрос на получение ежедневных данных о погоде с 1 по 8 мая 2024 года для Торонто
+        # Convert dates to the required format (YYYY-MM-DD)
+        start_date = last_year_date.strftime("%Y-%m-%d") # change the date format
+        end_date = current_date.strftime("%Y-%m-%d")
+
+        # Now make a request to get daily weather data for a year
         url = f"https://meteostat.p.rapidapi.com/stations/daily?station={station_id}"
         params = {
-            'start': '2023-05-08',
-            'end': '2024-05-08'
+            'start': start_date,
+            'end': end_date
         }
 
-        # Выполните запрос
+        # Perform the request
         response = requests.get(url, headers=headers, params=params)
 
-        # Проверяем статус кода ответа
+        # Check the response status code
         if response.status_code == 200:
-            # Получаем данные о погоде
+            # Get the weather data
             weather_data = response.json()['data']
 
-            # Создаем DataFrame с данными о погоде
+            # Create a DataFrame object with the weather data
             df = pd.DataFrame(weather_data)
 
-            # Извлекаем данные о дате и средней температуре из ответа
-            dates = df['date']
-            avg_temperatures = df['tavg']
+            # Select only the columns for date, average temperature and pressure
+            df = df[['date', 'tavg', 'pres']]
 
-            # Строим график
-            plt.figure(figsize=(10, 6))
-            plt.plot(dates, avg_temperatures, marker='o', linestyle='-')
-            plt.xlabel('Date')
-            plt.ylabel('Average Temperature (°C)')
-            plt.title('Average Temperature in Toronto (May 1-8, 2024)')
-            plt.xticks(rotation=45)
-            plt.grid(True)
-            plt.tight_layout()
+            # Rename the columns for clarity
+            df.columns = ['Date', 'Average Temperature (°C)', 'Pressure']
+
+            # Plot the graph
+            plt.figure(figsize=(10, 6)) # create a graph 10x6 du
+            plt.plot(df['Date'], df['Average Temperature (°C)'], marker='o') # use date for 'x' and temp for 'y'
+            plt.xlabel('Date') # name 'x'
+            plt.ylabel('Average Temperature (°C)') # name 'y'
+            plt.title('Average Temperature in Toronto (Year from Today to Last Year)') # name of the graph
+            plt.gca().xaxis.set_major_locator(MonthLocator())  # set ticks for each month
+            plt.xticks(rotation=45) # turn the gate on 'x'
+            plt.grid(True) # turn on the grid on the chart
+            plt.tight_layout() # automatic alignment of graph elements for better display
             plt.show()
 
-            # Записываем данные в файл Excel
+            # Write data to an Excel file
             df.to_excel('toronto_weather_data.xlsx', index=False)
 
         else:
-            print("Ошибка при запросе данных о погоде:")
+            print("Error fetching weather data:") # ошибка данных о получении погоды
             print(response.text)
     else:
-        print("Ошибка при запросе ближайших станций:")
+        print("Error fetching nearest stations:") # ошибка о станции
         print(response.text)
 except Exception as e:
-    print("Произошла ошибка при выполнении запроса:")
+    print("An error occurred while executing the request:") # ошибка в целом о реквесте
     print(e)

@@ -59,7 +59,7 @@ try:
         plt.plot(daily_df['Date'], daily_df['Pressure (hPa)'], marker='^', linestyle=':', label='Average Pressure')
         plt.xlabel('Date')
         plt.ylabel('Values')
-        plt.title('Weather Trends in Toronto (May 1-8, 2024)')
+        plt.title('Weather Trends in Toronto')
         plt.legend()
         plt.grid(True)
         plt.xticks(rotation=45)
@@ -67,7 +67,7 @@ try:
         plt.show()
 
         # Write data to an Excel file with renamed columns
-        daily_df.to_excel('toronto_weather_data.xlsx', index=False)
+        daily_df.to_excel('toronto_weather_data_with_humid.xlsx', index=False)
 
     else:
         print("Error retrieving weather data:")
