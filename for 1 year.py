@@ -1,21 +1,21 @@
-import requests
-import pandas as pd
-import matplotlib.pyplot as plt
-import datetime
-from geopy.geocoders import Nominatim # installed geopy by pip
-from matplotlib.dates import MonthLocator
+import requests # for api requests
+import pandas as pd # for data processing
+import matplotlib.pyplot as plt # for graphs
+import datetime # for working with time
+from geopy.geocoders import Nominatim # installed geopy by pip / determine the coordinates of Toronto
+from matplotlib.dates import MonthLocator # for 'x' axis for only month
 
 # Define the current date
-current_date = datetime.datetime.now()
+current_date = datetime.datetime.now() # today's date
 
 # Define the date of last year
-last_year_date = current_date - datetime.timedelta(days=365)
+last_year_date = current_date - datetime.timedelta(days=365) # subtraction between current and pointed date
 
 # Geocode the city name to get its coordinates
-geolocator = Nominatim(user_agent="toronto_weather")
-location = geolocator.geocode("Toronto")
-latitude = location.latitude
-longitude = location.longitude
+geolocator = Nominatim(user_agent="toronto_weather") # initializing an object to determine coordinates by place name
+location = geolocator.geocode("Toronto") # getting the coordinates of toronto / can change the city
+latitude = location.latitude # getting the lat
+longitude = location.longitude # getting the lon
 
 # Set the request parameters to get the nearest station to Toronto
 url = "https://meteostat.p.rapidapi.com/stations/nearby"
@@ -83,7 +83,7 @@ try:
             print("Error fetching weather data:") # ошибка данных о получении погоды
             print(response.text)
     else:
-        print("Error fetching nearest stations:") # ошибка о станции
+        print("Error fetching nearest stations:") #
         print(response.text)
 except Exception as e:
     print("An error occurred while executing the request:") # ошибка в целом о реквесте
